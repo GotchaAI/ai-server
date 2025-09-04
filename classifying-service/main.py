@@ -1,20 +1,28 @@
 import uvicorn
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import List
-import requests
+import requests, httpx
 from io import BytesIO
 from PIL import Image
 import torch
 import torch.nn as nn
 from torchvision import transforms as T
 from torchvision.models import efficientnet_b0
-import os
+
+async def lifespan(app):
+    app.state.http = httpx.AsyncClient(
+        timeout=httpx.Timeout(10.0),
+        limits=httpx.Limits(max_keepalive_connections=100, max_connections=200),
+    )
+    yield
+    await app.state.http.aclose()
 
 app = FastAPI(
     title="Image Classification Service",
     description="A FastAPI service for classifying images using a pre-trained EfficientNet model.",
-    version="1.0.0"
+    version="1.0.0",
+    lifespan=lifespan
 )
 
 class ImageReq(BaseModel):
@@ -160,9 +168,9 @@ def classify(image: Image.Image) -> List[dict]:
     return results
 
 @app.post("/classify", response_model=ClassifyRes, summary="Classify image", description="Classify the given image URL.")
-async def classify_image(req: ImageReq):
+async def classify_image(request: Request, body: ImageReq):
     try:
-        response = requests.get(req.image_url)
+        response = await request.app.http.state.get(body.image_url)
         response.raise_for_status()
     except requests.RequestException as e:
         raise HTTPException(status_code=400, detail=f"Failed to fetch image from URL: {e}")
