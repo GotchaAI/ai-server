@@ -179,6 +179,8 @@ jobs:
           task-definition: task-definition.json
           container-name: masking-service # Task Definition에 정의된 컨테이너 이름
           image: ${{ steps.build-image.outputs.image }}
+          environment-variables: |
+            S3_BUCKET_NAME=${{ secrets.S3_BUCKET_NAME }}
 
 
       - name: Deploy Amazon ECS task definition
