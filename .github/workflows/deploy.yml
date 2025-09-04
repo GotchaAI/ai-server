@@ -6,15 +6,36 @@ on:
       - master
 
 env:
-  AWS_REGION: ${{ secrets.AWS_REGION }}
-  ECR_REGISTRY: ${{ secrets.AWS_ACCOUNT_ID }}.dkr.ecr.${{ secrets.AWS_REGION }}.amazonaws.com
+  AWS_REGION: ap-northeast-2
+  ECR_REGISTRY: 767828735725.dkr.ecr.ap-northeast-2.amazonaws.com
 
 jobs:
+  changes:
+    name: Detect Changes
+    runs-on: ubuntu-latest
+    outputs:
+      captioning: ${{ steps.filter.outputs.captioning }}
+      classifying: ${{ steps.filter.outputs.classifying }}
+      masking: ${{ steps.filter.outputs.masking }}
+
+    steps:
+      - uses: actions/checkout@v3
+      - uses: dorny/paths-filter@v2
+        id: filter
+        with:
+          filters: |
+            captioning:
+              - 'captioning-service/**'
+            classifying:
+              - 'classifying-service/**'
+            masking:
+              - 'masking-service/**'
+
   deploy-captioning:
     name: Deploy Captioning Service
+    needs: changes
+    if: needs.changes.outputs.captioning == 'true'
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[force deploy]') || contains(join(github.event.commits.*.modified), 'captioning-service/') || contains(join(github.event.commits.*.added), 'captioning-service/')"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -36,19 +57,18 @@ jobs:
           ECR_REPOSITORY: captioning-service
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./captioning-service
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./captioning-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
       - name: Update Amazon ECS service
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service captioning-service --force-new-deployment
+          aws ecs update-service --cluster ai-services-cluster --service captioning-service --force-new-deployment --region ${{ env.AWS_REGION }}
 
   deploy-classifying:
     name: Deploy Classifying Service
+    needs: changes
+    if: needs.changes.outputs.classifying == 'true'
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[force deploy]') || contains(join(github.event.commits.*.modified), 'classifying-service/') || contains(join(github.event.commits.*.added), 'classifying-service/')"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -70,19 +90,18 @@ jobs:
           ECR_REPOSITORY: classifying-service
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./classifying-service
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./classifying-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
       - name: Update Amazon ECS service
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service classifying-service --force-new-deployment
+          aws ecs update-service --cluster ai-services-cluster --service classifying-service --force-new-deployment --region ${{ env.AWS_REGION }}
 
   deploy-masking:
     name: Deploy Masking Service
+    needs: changes
+    if: needs.changes.outputs.masking == 'true'
     runs-on: ubuntu-latest
-    if: "contains(github.event.head_commit.message, '[force deploy]') || contains(join(github.event.commits.*.modified), 'masking-service/') || contains(join(github.event.commits.*.added), 'masking-service/')"
-
     steps:
       - name: Checkout
         uses: actions/checkout@v3
@@ -104,10 +123,9 @@ jobs:
           ECR_REPOSITORY: masking-service
           IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG ./masking-service
-          docker push $ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG
-          echo "::set-output name=image::$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./masking-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
       - name: Update Amazon ECS service
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service masking-service --force-new-deployment
+          aws ecs update-service --cluster ai-services-cluster --service masking-service --force-new-deployment --region ${{ env.AWS_REGION }}
