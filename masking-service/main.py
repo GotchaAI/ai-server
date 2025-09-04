@@ -17,7 +17,7 @@ class ImageReq(BaseModel):
     image_url: str
 
 reader = easyocr.Reader(['en', 'ko'])
-# text masking logic
+
 def mask_text(image: Image.Image) -> Image.Image:
     image_np = np.array(image)
     results = reader.readtext(image_np)

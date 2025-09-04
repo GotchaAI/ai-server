@@ -30,7 +30,6 @@ def preproc(image_bytes: bytes) -> Image.Image:
     image = Image.open(BytesIO(image_bytes)).convert("RGB")
     return image
 
-# captioning logic
 def generate_caption(image: Image.Image) -> str:
     inputs = processor(image, return_tensors="pt").to(device)
     with torch.no_grad():

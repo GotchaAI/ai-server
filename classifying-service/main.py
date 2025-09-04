@@ -145,7 +145,6 @@ encode_image = T.Compose([
     ])
 
 
-# classification logic
 def classify(image: Image.Image) -> List[dict]:
     img_tensor = encode_image(image).unsqueeze(0).to(device)
     with torch.no_grad():
