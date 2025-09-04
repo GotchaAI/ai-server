@@ -46,7 +46,7 @@ def generate_caption(image: Image.Image) -> str:
 @app.post("/caption", summary="Generate image caption", description="Generate a caption for the given image URL.")
 async def caption_image(request: Request, req: ImageReq):
     try:
-        response = await request.get.state.http.get(req.image_url)
+        response = await request.app.http.state.get(req.image_url)
         response.raise_for_status()
         if not response.headers.get("content-type", "").startswith("image/"):
             raise HTTPException(415, "Unsupported content-type")
@@ -56,6 +56,10 @@ async def caption_image(request: Request, req: ImageReq):
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
     return {"caption": caption}
+
+@app.get("/health", summary="Health Check", description="Check if the service is running.")
+async def health_check():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)

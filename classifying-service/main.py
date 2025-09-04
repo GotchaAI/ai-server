@@ -172,17 +172,19 @@ async def classify_image(request: Request, body: ImageReq):
     try:
         response = await request.app.http.state.get(body.image_url)
         response.raise_for_status()
-    except requests.RequestException as e:
-        raise HTTPException(status_code=400, detail=f"Failed to fetch image from URL: {e}")
-
-    try:
+        if not response.headers.get("content-type", "").startswith("image/"):
+            raise HTTPException(415, "Unsupported content-type")
         img = preproc(response.content)
         predictions = classify(img)
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
-    filename = req.image_url.split("/")[-1]
+    filename = body.image_url.split("/")[-1]
     return {"filename": filename, "result": predictions}
+
+@app.get("/health", summary="Health Check", description="Check if the service is running.")
+async def health_check():
+    return {"status": "ok"}
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8002)

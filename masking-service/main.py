@@ -53,5 +53,9 @@ async def mask_image(req: ImageReq):
 
     return {"masked_image": "masking completed"}
 
+@app.get("/health", summary="Health Check", description="Check if the service is running.")
+async def health_check():
+    return {"status": "ok"}
+
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8003)
