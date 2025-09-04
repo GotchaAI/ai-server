@@ -30,6 +30,6 @@ COPY --from=builder /install /usr/local
 # 앱 소스 코드 복사
 COPY . .
 
-EXPOSE 8001
+EXPOSE 8000
 
-CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8001"]
+CMD ["uvicorn", "main:app", "--host", "0.0.0.0", "--port", "8000"]
