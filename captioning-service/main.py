@@ -20,7 +20,10 @@ app = FastAPI(
     title="Image Captioning Service",
     description="A FastAPI service for generating image captions using a pre-trained BLIP model.",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/caption/docs",
+    redoc_url="/caption/redoc",
+    openapi_url="/caption/openapi.json"
 )
 
 class ImageReq(BaseModel):
@@ -43,7 +46,20 @@ def generate_caption(image: Image.Image) -> str:
     caption = processor.decode(out[0], skip_special_tokens=True)
     return caption
 
-@app.post("/caption", summary="Generate image caption", description="Generate a caption for the given image URL.")
+class CaptionResp(BaseModel):
+    caption: str = Field(description="Generated caption for the image")
+
+@app.post(
+    "/caption/exec",
+    summary="Generate image caption",
+    description="Generate a caption for the given image URL.",
+    tags=["Image Captioning"],
+    response_model=CaptionResp,
+    responses={
+        415: {"description": "Unsupported content-type. Only images are allowed."},
+        500: {"description": "Internal server error while processing the image."}
+    }
+)
 async def caption_image(request: Request, req: ImageReq):
     try:
         response = await request.app.http.state.get(req.image_url)
@@ -55,7 +71,7 @@ async def caption_image(request: Request, req: ImageReq):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
-    return {"caption": caption}
+    return CaptionResp(caption=caption)
 
 @app.get("/health", summary="Health Check", description="Check if the service is running.")
 async def health_check():

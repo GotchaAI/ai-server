@@ -22,7 +22,10 @@ app = FastAPI(
     title="Image Classification Service",
     description="A FastAPI service for classifying images using a pre-trained EfficientNet model.",
     version="1.0.0",
-    lifespan=lifespan
+    lifespan=lifespan,
+    docs_url="/classify/docs",
+    redoc_url="/classify/redoc",
+    openapi_url="/classify/openapi.json"
 )
 
 class ImageReq(BaseModel):
@@ -167,7 +170,17 @@ def classify(image: Image.Image) -> List[dict]:
         })
     return results
 
-@app.post("/classify", response_model=ClassifyRes, summary="Classify image", description="Classify the given image URL.")
+@app.post(
+    "/classify/exec",
+    response_model=ClassifyRes,
+    summary="Classify image",
+    description="Classify the given image URL.",
+    tags=["Image Classification"],
+    responses={
+        415: {"description": "Unsupported content-type. Only images are allowed."},
+        500: {"description": "Error processing image."}
+    }
+)
 async def classify_image(request: Request, body: ImageReq):
     try:
         response = await request.app.http.state.get(body.image_url)
@@ -180,7 +193,8 @@ async def classify_image(request: Request, body: ImageReq):
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
     filename = body.image_url.split("/")[-1]
-    return {"filename": filename, "result": predictions}
+    result = [AiPrediction(**pred) for pred in predictions]
+    return ClassifyRes(filename=filename, result=result)
 
 @app.get("/health", summary="Health Check", description="Check if the service is running.")
 async def health_check():

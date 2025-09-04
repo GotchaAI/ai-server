@@ -10,7 +10,10 @@ import numpy as np
 app=FastAPI(
     title="Image Masking Service",
     description="A FastAPI service for masking images using a pre-trained segmentation model.",
-    version="1.0.0"
+    version="1.0.0",
+    docs_url="/mask/docs",
+    redoc_url="/mask/redoc",
+    openapi_url="/mask/openapi.json"
 )
 
 class ImageReq(BaseModel):
@@ -34,7 +37,7 @@ def mask_text(image: Image.Image) -> Image.Image:
 
     return masked
 
-@app.post("/mask", summary="Mask text in image", description="Mask text in the given image URL.")
+@app.post("/mask/exec", summary="Mask text in image", description="Mask text in the given image URL.")
 async def mask_image(req: ImageReq):
     try:
         response = requests.get(req.image_url)
