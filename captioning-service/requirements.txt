@@ -1,0 +1,8 @@
+fastapi
+uvicorn
+requests
+python-multipart
+transformers
+Pillow
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch

@@ -1,0 +1,10 @@
+fastapi
+uvicorn
+requests
+python-multipart
+easyocr
+numpy
+opencv-python-headless
+Pillow
+--extra-index-url https://download.pytorch.org/whl/cpu
+torch
