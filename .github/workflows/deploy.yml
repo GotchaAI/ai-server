@@ -1,6 +1,7 @@
 name: Deploy AI Services to AWS Fargate
 
 on:
+  workflow_dispatch:
   push:
     branches:
       - master
