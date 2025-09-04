@@ -181,7 +181,7 @@ async def classify_image(request: Request, body: ImageReq):
 
     filename = body.image_url.split("/")[-1]
     return {"filename": filename, "result": predictions}
-#
+
 @app.get("/health", summary="Health Check", description="Check if the service is running.")
 async def health_check():
     return {"status": "ok"}

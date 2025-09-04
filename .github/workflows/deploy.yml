@@ -55,13 +55,34 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: captioning-service
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./captioning-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./captioning-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          echo "::set-output name=image::${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}"
 
-      - name: Update Amazon ECS service
+      - name: Download task definition
+        id: task-def
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service captioning-service --force-new-deployment --region ${{ env.AWS_REGION }}
+          aws ecs describe-task-definition --task-definition captioning-service --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: captioning-service # Task Definition에 정의된 컨테이너 이름
+          image: ${{ steps.build-image.outputs.image }}
+
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: captioning-service # 업데이트할 서비스 이름
+          cluster: ai-services-cluster # 클러스터 이름
+          wait-for-service-stability: true # 배포가 안정될 때까지 기다림
+
 
   deploy-classifying:
     name: Deploy Classifying Service
@@ -87,13 +108,32 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: classifying-service
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./classifying-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./classifying-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-      - name: Update Amazon ECS service
+      - name: Download task definition
+        id: task-def
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service classifying-service --force-new-deployment --region ${{ env.AWS_REGION }}
+            aws ecs describe-task-definition --task-definition classifying-service --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: classifying-service # Task Definition에 정의된 컨테이너 이름
+          image: ${{ steps.build-image.outputs.image }}
+
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: classifying-service # 업데이트할 서비스 이름
+          cluster: ai-services-cluster # 클러스터 이름
+          wait-for-service-stability: true # 배포가 안정될 때까지 기다림
 
   deploy-masking:
     name: Deploy Masking Service
@@ -119,10 +159,29 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: masking-service
+          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./masking-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./masking-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
 
-      - name: Update Amazon ECS service
+      - name: Download task definition
+        id: task-def
         run: |
-          aws ecs update-service --cluster ai-services-cluster --service masking-service --force-new-deployment --region ${{ env.AWS_REGION }}
+            aws ecs describe-task-definition --task-definition masking-service --query taskDefinition > task-definition.json
+
+      - name: Fill in the new image ID in the Amazon ECS task definition
+        id: render-task-def
+        uses: aws-actions/amazon-ecs-render-task-definition@v1
+        with:
+          task-definition: task-definition.json
+          container-name: masking-service # Task Definition에 정의된 컨테이너 이름
+          image: ${{ steps.build-image.outputs.image }}
+
+
+      - name: Deploy Amazon ECS task definition
+        uses: aws-actions/amazon-ecs-deploy-task-definition@v1
+        with:
+          task-definition: ${{ steps.render-task-def.outputs.task-definition }}
+          service: masking-service # 업데이트할 서비스 이름
+          cluster: ai-services-cluster # 클러스터 이름
+          wait-for-service-stability: true # 배포가 안정될 때까지 기다림

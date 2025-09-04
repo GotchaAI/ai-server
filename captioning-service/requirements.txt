@@ -3,6 +3,7 @@ uvicorn
 requests
 python-multipart
 transformers
+httpx
 Pillow
 --extra-index-url https://download.pytorch.org/whl/cpu
 torch

@@ -31,7 +31,7 @@ captioning_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 captioning_model.to(device)
 
-#
+
 def preproc(image_bytes: bytes) -> Image.Image:
     image = Image.open(BytesIO(image_bytes)).convert("RGB")
     return image
