@@ -55,10 +55,9 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: captioning-service
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./captioning-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./captioning-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Update Amazon ECS service
         run: |
@@ -88,10 +87,9 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: classifying-service
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./classifying-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./classifying-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Update Amazon ECS service
         run: |
@@ -121,10 +119,9 @@ jobs:
         id: build-image
         env:
           ECR_REPOSITORY: masking-service
-          IMAGE_TAG: ${{ github.sha }}
         run: |
-          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }} ./masking-service
-          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:${{ env.IMAGE_TAG }}
+          docker build -t ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest ./masking-service
+          docker push ${{ env.ECR_REGISTRY }}/${{ env.ECR_REPOSITORY }}:latest
 
       - name: Update Amazon ECS service
         run: |

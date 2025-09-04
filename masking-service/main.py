@@ -52,7 +52,7 @@ async def mask_image(req: ImageReq):
     #     return {"error": f"Error processing image: {e}"}
 
     return {"masked_image": "masking completed"}
-
+#
 @app.get("/health", summary="Health Check", description="Check if the service is running.")
 async def health_check():
     return {"status": "ok"}
