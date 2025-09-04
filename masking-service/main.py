@@ -17,7 +17,7 @@ class ImageReq(BaseModel):
     image_url: str
 
 reader = easyocr.Reader(['en', 'ko'])
-
+# text masking logic
 def mask_text(image: Image.Image) -> Image.Image:
     image_np = np.array(image)
     results = reader.readtext(image_np)
@@ -42,13 +42,13 @@ async def mask_image(req: ImageReq):
     except requests.RequestException as e:
         return {"error": f"Failed to fetch image from URL: {e}"}
 
-    try:
-        img = Image.open(BytesIO(response.content)).convert("RGB")
-        masked_img = mask_text(img)
-        buffered = BytesIO()
-        masked_img.save(buffered, format="PNG")
-        img_str = "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
-    except Exception as e:
-        return {"error": f"Error processing image: {e}"}
+    # try:
+    img = Image.open(BytesIO(response.content)).convert("RGB")
+    masked_img = mask_text(img)
+    #     buffered = BytesIO()
+    #     masked_img.save(buffered, format="PNG")
+    #     img_str = "data:image/png;base64," + base64.b64encode(buffered.getvalue()).decode()
+    # except Exception as e:
+    #     return {"error": f"Error processing image: {e}"}
 
-    return {"masked_image": img_str}
+    return {"masked_image": "masking completed"}

@@ -18,12 +18,12 @@ app = FastAPI(
 class ImageReq(BaseModel):
     image_url: str = Field(description="Image URL")
 
-print("모델 로드 중...")
+# print("모델 로드 중...")
 processor = BlipProcessor.from_pretrained("Salesforce/blip-image-captioning-base")
 captioning_model = BlipForConditionalGeneration.from_pretrained("Salesforce/blip-image-captioning-base")
 device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 captioning_model.to(device)
-print("모델 로드 완료.")
+# print("모델 로드 완료.")
 
 
 def preproc(image_bytes: bytes) -> Image.Image:
@@ -52,7 +52,7 @@ async def caption_image(req: ImageReq):
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error processing image: {e}")
 
-    return {"caption": caption}
+    return {"caption": caption }
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8001)
