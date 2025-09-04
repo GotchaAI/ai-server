@@ -1,7 +1,5 @@
-from http.client import HTTPException
-
 import uvicorn
-from fastapi import FastAPI, Request
+from fastapi import FastAPI, Request, HTTPException
 from pydantic import BaseModel, Field
 from transformers import BlipProcessor, BlipForConditionalGeneration
 from PIL import Image
@@ -60,9 +58,9 @@ class CaptionResp(BaseModel):
         500: {"description": "Internal server error while processing the image."}
     }
 )
-async def caption_image(request: Request, req: ImageReq):
+async def caption_image(request: Request, body: ImageReq):
     try:
-        response = await request.app.http.state.get(req.image_url)
+        response = await request.app.state.http.get(body.image_url)
         response.raise_for_status()
         if not response.headers.get("content-type", "").startswith("image/"):
             raise HTTPException(415, "Unsupported content-type")

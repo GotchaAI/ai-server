@@ -2,7 +2,7 @@ import uvicorn
 from fastapi import FastAPI, HTTPException, Request
 from pydantic import BaseModel, Field
 from typing import List
-import requests, httpx
+import httpx
 from io import BytesIO
 from PIL import Image
 import torch
@@ -183,7 +183,7 @@ def classify(image: Image.Image) -> List[dict]:
 )
 async def classify_image(request: Request, body: ImageReq):
     try:
-        response = await request.app.http.state.get(body.image_url)
+        response = await request.app.state.http.get(body.image_url)
         response.raise_for_status()
         if not response.headers.get("content-type", "").startswith("image/"):
             raise HTTPException(415, "Unsupported content-type")
